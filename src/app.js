@@ -57,6 +57,13 @@ function caseDetail(item) {
 function render() {
   const content = state.mode==='customer' ? customerView() : state.activeAgentMenu==='cases' ? casesView() : inboxView();
   app.innerHTML = shell(content);
+  decorateComposer();
+}
+function decorateComposer() {
+  const composer=app.querySelector('.composer-agent');
+  if(!composer) return;
+  const internal=state.composerMode==='internal';
+  composer.innerHTML='<div class="composer-type"><button class="'+(!internal?'active':'')+'" data-action="composer-mode" data-id="reply">답장</button><button class="'+(internal?'active':'')+'" data-action="composer-mode" data-id="internal">내부 메모</button></div><textarea data-composer-input placeholder="'+(internal?'내부 메모를 작성하세요…':'고객에게 답장하기…')+'">'+esc(state.composerText)+'</textarea><div class="composer-actions"><button class="link-button" data-action="use-macro">매크로 사용</button><button class="send" data-action="send-message">'+(internal?'메모 추가':'답장 보내기')+'</button></div>';
 }
 function notify(message) {
   setState({toast:message}); render(); window.setTimeout(() => { if(state.toast===message) { setState({toast:''}); render(); } }, 2200);
@@ -73,6 +80,20 @@ function submitRequest() {
   data.conversations.unshift({id,customerId:'u-maya',organizationId:'o-acme',caseId:null,incidentId:null,title:'API requests returning 502 in EU-West',type:'Technical issue',status:'New',priority:'High',assigneeId:null,teamId:'t-support',createdAt:NOW.toISOString(),technical:{product:'Public API',environment:'Production',region:'EU-West',version:'API v3',errorCode:'502',requestId:'req_89a21',impact:'EU customers cannot complete checkout.'},messages:[{from:'Maya Chen',type:'customer',time:'방금',text:'최근 배포 이후 API 요청에서 502 응답이 발생합니다.'}]});
   setState({selectedConversationId:id,customerStep:'chat'}); notify('기술 지원팀에 문의를 보냈습니다.');
 }
+function sendMessage() {
+  const text=state.composerText.trim();
+  if(!text) { notify('메시지를 먼저 작성하세요.'); return; }
+  const c=find(data.conversations,state.selectedConversationId);
+  const internal=state.composerMode==='internal';
+  c.messages.push({from:'Alex Kim',type:internal?'internal':'agent',time:'방금',text});
+  if(!internal) c.status='Waiting for customer';
+  setState({composerText:''});
+  notify(internal?'내부 메모를 추가했습니다.':'답장을 보냈습니다.');
+}
+function useMacro() {
+  const macro='제보 감사합니다. 현재 담당 팀에서 문제를 조사하고 있으며, 새로운 정보가 확인되는 대로 안내해 드리겠습니다.';
+  setState({composerText:state.composerText ? state.composerText+'\n\n'+macro : macro});
+}
 document.addEventListener('click',(event)=>{
   const el=event.target.closest('[data-action]'); if(!el)return;
   const action=el.dataset.action, id=el.dataset.id;
@@ -81,6 +102,9 @@ document.addEventListener('click',(event)=>{
   if(action==='inbox-queue')setState({inboxQueue:id});
   if(action==='customer-step')setState({customerStep:id});
   if(action==='submit-request')submitRequest();
+  if(action==='composer-mode')setState({composerMode:id});
+  if(action==='use-macro')useMacro();
+  if(action==='send-message')sendMessage();
   if(action==='conversation')setState({selectedConversationId:id});
   if(action==='case')setState({selectedCaseId:id});
   if(action==='open-case')setState({activeAgentMenu:'cases',selectedCaseId:id});
@@ -91,6 +115,6 @@ document.addEventListener('click',(event)=>{
   if(action==='toast')notify(id);
   render();
 });
-document.addEventListener('input',(event)=>{const el=event.target;if(!el.dataset.filter)return;setState({filters:{...state.filters,[el.dataset.filter]:el.value}});render();});
+document.addEventListener('input',(event)=>{const el=event.target;if(el.dataset.composerInput!==undefined){setState({composerText:el.value});return;}if(!el.dataset.filter)return;setState({filters:{...state.filters,[el.dataset.filter]:el.value}});render();});
 document.addEventListener('change',(event)=>{const el=event.target;if(el.dataset.filter){setState({filters:{...state.filters,[el.dataset.filter]:el.value}});render();}if(el.dataset.caseField&&el.value){const item=find(data.cases,state.selectedCaseId);item[el.dataset.caseField]=el.value;item.activity.unshift({time:'방금',text:'케이스 정보를 변경했습니다.'});notify('케이스 정보를 변경했습니다.');}});
 render();
