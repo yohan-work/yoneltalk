@@ -8,6 +8,7 @@ export const status = (value) => ({
   New: '신규', Open: '진행 중', Resolved: '해결됨', Closed: '종료됨',
   'Waiting for customer': '고객 답변 대기', 'Waiting for team': '팀 답변 대기',
   Investigating: '조사 중', Identified: '원인 확인', Monitoring: '모니터링',
+  Triage: '분류 대기', Planned: '개발 예정', Fixed: '수정 완료', Released: '배포 완료',
 }[value] || value);
 
 export const openCase = (item) => !['Resolved', 'Closed'].includes(item.status);
