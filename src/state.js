@@ -1,14 +1,2 @@
-export const state = {
-  mode: 'agent',
-  customerStep: 'home',
-  activeAgentMenu: 'inbox',
-  inboxQueue: 'all',
-  selectedConversationId: 'conv-1048',
-  selectedCaseId: 'case-1048',
-  filters: { query: '', status: '', severity: '', incident: '' },
-  composerMode: 'reply',
-  composerText: '',
-  toast: '',
-};
-
+export const state = { mode: 'agent', customerStep: 'home', activeAgentMenu: 'inbox', inboxQueue: 'all', selectedConversationId: 'conv-1048', selectedCaseId: 'case-1048', selectedCustomerId: 'u-maya', selectedOrganizationId: 'o-acme', selectedIncidentId: 'inc-203', selectedArticleId: 'art-api-5xx', filtersByMenu: {}, analyticsTab: 'overview', composerMode: 'reply', composerText: '', customerForm: { product: 'Public API', environment: 'Production', region: 'EU-West', version: 'API v3', errorCode: '502', requestId: '', impact: '', reproductionSteps: '', message: '최근 배포 이후 API 요청에서 502 응답이 발생합니다.' }, modal: null, toast: '' };
 export const setState = (patch) => Object.assign(state, patch);
